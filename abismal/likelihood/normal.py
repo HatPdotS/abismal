@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow_probability import distributions as tfd
-from abismal.likelihood.location_scale import LocationScale
+from abismal.likelihood.location_scale import LocationScale,Ev11Likelihood
 
 
 class WeightedLeastSquaresLikelihood(LocationScale):
@@ -17,4 +17,9 @@ class LeastSquaresLikelihood(LocationScale):
     def _likelihood(self, iobs, sigiobs):
         scale = tf.reduce_mean(sigiobs)
         return tfd.Normal(iobs, scale)
+
+
+class Ev11NormalLikelihood(Ev11Likelihood):
+    def _likelihood(self, iobs, sigiobs):
+        return tfd.Normal(iobs, sigiobs)
 

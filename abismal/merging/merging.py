@@ -340,6 +340,7 @@ class VariationalMergingModel(tfk.models.Model):
 
         ll_vars = self.likelihood.trainable_variables
         if len(ll_vars) > 0:
+            # Note the order here matters for deserialization
             grad_ll = tape.gradient(loss, ll_vars)
             trainable_vars += ll_vars
             gradients += grad_ll
