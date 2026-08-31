@@ -94,7 +94,16 @@ class Ev11Likelihood(LocationScale):
         # effective number of reflections determining a crystal's scale from 4.3
         # to 8-12), so Sdadd = 0.2^2 = 0.04. SdB starts near zero because the
         # Poisson term is already inside CrystFEL's sigma.
-        self.Sdfac = tfu.TransformedVariable(1.,   tfb.Softplus())
+        # Sdfac is FROZEN at 1.0. It is a blanket multiplier on the whole sigma,
+        # refined against the very likelihood it appears in, so inflating it is a
+        # cheap way to raise the log-likelihood of a poorly-fitting model and
+        # nothing anchors it. Left free it ran to 4.75 in 11 epochs here --
+        # every uncertainty inflated ~5x, I/sigma fell ~5x, and predictive power
+        # collapsed below the no-scale-model floor while the scale distribution
+        # still looked healthy. In Evans 2011 Sdfac is *calibrated* so normalised
+        # deviations have unit variance; it is a constraint, not a free parameter
+        # to be maximised jointly with the rest of the model.
+        self.Sdfac = tf.constant(1.0)
         self.Sdadd = tfu.TransformedVariable(0.04, tfb.Softplus())
         self.SdB   = tfu.TransformedVariable(0.01, tfb.Softplus())
         self.built = True
