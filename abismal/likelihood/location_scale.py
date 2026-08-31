@@ -86,9 +86,17 @@ class LocationScale(tfk.layers.Layer):
 class Ev11Likelihood(LocationScale):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Sdfac = tfu.TransformedVariable(1., tfb.Softplus())
-        self.Sdadd = tfu.TransformedVariable(1., tfb.Softplus())
-        self.SdB = tfu.TransformedVariable(1., tfb.Softplus())
+        # Ev11: sig'^2 = Sdfac^2 * (sig^2 + SdB*ipred + Sdadd*ipred^2)
+        # Sdadd is a VARIANCE coefficient, so it is the square of the fractional
+        # error. Upstream initialises all three at 1.0, which makes sig' ~ ipred,
+        # caps I/sigma at ~1 and destroys the signal before refinement can relax
+        # it. Our data says the useful fractional error is 0.1-0.2 (it takes the
+        # effective number of reflections determining a crystal's scale from 4.3
+        # to 8-12), so Sdadd = 0.2^2 = 0.04. SdB starts near zero because the
+        # Poisson term is already inside CrystFEL's sigma.
+        self.Sdfac = tfu.TransformedVariable(1.,   tfb.Softplus())
+        self.Sdadd = tfu.TransformedVariable(0.04, tfb.Softplus())
+        self.SdB   = tfu.TransformedVariable(0.01, tfb.Softplus())
         self.built = True
 
     def corrected_sigiobs(self, ipred, sigiobs):
